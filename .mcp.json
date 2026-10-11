@@ -9,7 +9,8 @@
         "quote:read",
         "quote:write",
         "trade:read",
-        "trade:write"
+        "trade:write",
+        "accid:*"
       ]
     }
   }

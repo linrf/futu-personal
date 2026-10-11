@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 REAL_OPERATIONS = {"trading_order_place", "trading_order_replace", "trading_order_cancel", "trading_order_confirm"}
 SIM_WRITES = {"sim_trade_input_order", "sim_trade_modify_order", "sim_trade_cancel_order"}
-SCOPES = {"quote:read", "quote:write", "trade:read", "trade:write"}
+SCOPES = {"quote:read", "quote:write", "trade:read", "trade:write", "accid:*"}
 CRYPTO_OPERATIONS = {"crypto_account_create_order", "crypto_account_modify_order", "crypto_account_cancel_order"}
 
 
@@ -46,7 +46,7 @@ def main():
     assert "enabled_tools" not in server, "Full discovery must not use an allowlist"
     assert "disabled_tools" not in server, "Full discovery must not use a denylist"
     assert not server.get("tools"), "Full discovery must not disable individual tools"
-    assert set(server["scopes"]) == SCOPES and len(server["scopes"]) == 4
+    assert set(server["scopes"]) == SCOPES and len(server["scopes"]) == len(SCOPES)
     assert server["default_tools_approval_mode"] == "prompt"
     assert REAL_OPERATIONS | SIM_WRITES | CRYPTO_OPERATIONS | {"quote_modify_user_security", "sim_trade_history_order_list", "quote_combo_option_quote", "quote_option_strategy", "quote_option_strategy_spread"} <= documented_tools()
     marketplace = json.loads((ROOT / ".agents/plugins/marketplace.json").read_text())
@@ -75,7 +75,7 @@ def main():
     assert "order_execution" not in prefs
     assert prefs["operation_confirmation"] == "each_write_operation"
     assert prefs["max_pages"] > 0 and prefs["max_rows"] > 0
-    print(f"PASS: plugin, marketplace, {len(names)} skills, references, full tool discovery, 4 requested OAuth scopes")
+    print(f"PASS: plugin, marketplace, {len(names)} skills, references, full tool discovery, {len(SCOPES)} requested OAuth scopes")
 
 
 if __name__ == "__main__":

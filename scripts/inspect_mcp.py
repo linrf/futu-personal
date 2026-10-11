@@ -103,12 +103,13 @@ def main():
         missing = sorted(CORE_OPERATIONS - set(tools))
         report = {
             'verified_at': datetime.now(ZoneInfo('Asia/Taipei')).isoformat(timespec='seconds'),
-            'plugin_version': '0.2.0',
+            'source_plugin_version': json.loads((ROOT / '.codex-plugin/plugin.json').read_text())['version'],
             'auth_status': server['authStatus'],
             'loaded_tool_count': len(tools),
             'required_operation_tools_present': not missing,
             'missing_operation_tools': missing,
-            'requested_scopes': json.loads((ROOT / '.mcp.json').read_text())['mcpServers']['futu-personal']['scopes'],
+            'configured_requested_scopes': json.loads((ROOT / '.mcp.json').read_text())['mcpServers']['futu-personal']['scopes'],
+            'configuration_source': str(ROOT / '.mcp.json'),
             'granted_scopes': 'Requires verification on Futu authorization page; not inferred from saved OAuth',
             'tool_names': sorted(tools),
             'tools': tools,

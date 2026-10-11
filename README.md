@@ -1,6 +1,6 @@
 # Futu Personal
 
-个人 Codex 富途插件，当前版本 `0.2.0`。连接富途官方 MCP，提供行情、筛选、资讯、自选管理、账户查询、真实交易接口和模拟交易的完整接入。
+个人 Codex 富途插件，当前版本 `0.2.0`。连接富途官方 MCP，提供行情、筛选、资讯、自选管理、账户查询、真实交易接口、模拟交易和加密货币接口的完整接入。
 
 `.mcp.json` 不设置 `enabled_tools` 或 `disabled_tools`。Codex 按富途 MCP 当前返回的 `tools/list` 发现全部工具，不用固定白名单裁剪能力。Skills 提供常见意图路由与参数参考；未列入路由的新工具以当前服务端 schema 为准。工具已注册、OAuth 已授权和实际操作成功是三个不同的验证结果。
 
@@ -13,10 +13,10 @@
 ```bash
 codex plugin marketplace add /Users/bytedance/github/futu-personal
 codex plugin add futu-personal@futu-personal-local
-codex mcp login futu-personal --scopes quote:read,quote:write,trade:read,trade:write
+codex mcp login futu-personal --scopes 'quote:read,quote:write,trade:read,trade:write,accid:*'
 ```
 
-插件配置声明四类权限，登录命令也明确请求这四类权限。已有 `0.1.0` 的只读 OAuth 授权不会自动获得写权限，需要重新发起登录并由用户在富途页面选择和授予权限。最终可授予的范围取决于富途对当前客户端及账户的设置；不能把请求的 scope 当作已授予的 scope。
+插件配置申请服务端元数据声明的全部五项 scopes。已有 `0.1.0` 的只读 OAuth 授权不会自动获得写权限或账户绑定，需要重新发起登录并由用户在富途页面选择和授予权限。最终可授予的范围取决于富途对当前客户端及账户的设置；不能把请求的 scope 当作已授予的 scope。
 
 [富途官方认证文档](https://open.futunn.com/zh-cn/mcp-docs/authentication)说明了以下权限范围：
 
@@ -28,6 +28,8 @@ codex mcp login futu-personal --scopes quote:read,quote:write,trade:read,trade:w
 | `trade:write` | 执行下单、撤单操作 |
 
 该文档没有逐一列出改单、风控确认和所有模拟工具的 scope 映射。具体要求以当前工具 schema、富途授权页和接口返回为准。
+
+[OAuth 服务端元数据](https://mcp.futunn.com/.well-known/oauth-authorization-server)还声明了第五项 `accid:*`；[资源元数据](https://mcp.futunn.com/.well-known/oauth-protected-resource)也声明相同集合。公开认证说明页未解释该项。本机实际授权页对比中，四项请求没有账户选择框，交易权限置灰；补齐 `accid:*` 后出现账户选择框，交易查询与交易执行均可勾选。该观察说明了本次授权流程的差异，不代表全部 API 的权限映射已验证。
 
 OAuth 由 Codex 客户端发起。修改本地插件名称和 Skills 不会把它变成 WorkBuddy 的 OAuth 客户端，WorkBuddy 已获得的权限也不会转给 Codex。登录、协议接受和最终授权由用户在页面完成；账号密码和 OAuth Token 不应粘贴到聊天或写入仓库。
 
@@ -83,12 +85,13 @@ Codex 使用安装后的缓存副本。安装器如果未刷新，先 `codex plu
 
 ### 0.2.0 当前验收
 
-- 源码配置已声明四类 scopes，并移除工具白名单和黑名单。
+- 源码配置已声明服务端元数据中的五项 scopes，并移除工具白名单和黑名单。
 - 安装缓存已刷新为 0.2.0，Codex 原生客户端实际发现 101 个工具；实盘四工具、自选修改、模拟历史订单、加密货币接口和新增期权组合接口均已注册。
-- `scripts/inspect_mcp.py` 可重复核对当前工具集合，不读取凭据、不调用写工具、不保存新聊天。
-- 原有 OAuth 已保存，四类权限实际授予范围等待重新授权后在富途页面核对。
+- `scripts/inspect_mcp.py` 可重复核对当前工具集合，不读取凭据、不调用写工具、不保存新聊天。报告的 `configured_requested_scopes` 来自标明的源码配置路径，不代表实际授予的权限。
+- 原有 OAuth 已保存，全部权限及账户绑定等待重新授权后在富途页面核对。
+- 此前不含 `accid:*` 的四项授权请求中，交易查询、交易执行置灰并提示“请先完成开户”。已取消该次登录，重新请求全部五项；新页面出现账户选择框，交易查询、交易执行均可勾选，最终授权由用户在页面完成。
 - 本轮只验证完整注册及读接口，不发送真实订单、自选写请求或模拟订单。
-- 四类权限及真实交易调用尚未写成已通过；未执行的操作保留为未验证。
+- OAuth 全部实际授予范围及真实交易调用尚未写成已通过；未执行的操作保留为未验证。
 
 ### 0.1.0 历史验收（2026-10-12）
 

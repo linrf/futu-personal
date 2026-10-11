@@ -10,7 +10,7 @@
   "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "Futu Personal",
-    "shortDescription": "富途全部 MCP 工具与四类 OAuth 权限",
+    "shortDescription": "富途全部 MCP 工具与完整权限申请",
     "developerName": "Personal",
     "category": "Finance",
     "capabilities": [
