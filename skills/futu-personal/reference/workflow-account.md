@@ -1,7 +1,3 @@
----
-name: futu-personal-account
-description: 富途账户与完整交易接口，包括真实下单、改单、撤单、风控确认、模拟交易，以及资金、持仓、订单和成交查询。
----
 
 # 富途账户与交易接口
 
@@ -47,7 +43,7 @@ description: 富途账户与完整交易接口，包括真实下单、改单、�
 
 ## 参数参考
 
-- 真实账户查询：[trading-real.md](reference/trading-real.md)
-- 真实下单、改单、撤单、确认：[trading-real-order.md](reference/trading-real-order.md)
-- 模拟接口：[trading-sim.md](reference/trading-sim.md)。历史订单等未收入旧文档的工具读取当前 schema，不猜测字段。
-- 需要离线整理股票 LIMIT 单参数时，可选用同包 `futu-personal-order-draft`；该脚本不是完整交易接口的替代。
+- 真实账户查询：[trading-real.md](./trading-real.md)
+- 真实下单、改单、撤单、确认：[trading-real-order.md](./trading-real-order.md)
+- 模拟接口：[trading-sim.md](./trading-sim.md)。历史订单等未收入旧文档的工具读取当前 schema，不猜测字段。
+- 需要离线整理股票 LIMIT 单参数时，可选用同包 [订单草稿工作流](./workflow-order-draft.md)；该脚本不是完整交易接口的替代。

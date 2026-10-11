@@ -11,17 +11,22 @@ REAL_OPERATIONS = {"trading_order_place", "trading_order_replace", "trading_orde
 SIM_WRITES = {"sim_trade_input_order", "sim_trade_modify_order", "sim_trade_cancel_order"}
 SCOPES = {"quote:read", "quote:write", "trade:read", "trade:write", "accid:*"}
 CRYPTO_OPERATIONS = {"crypto_account_create_order", "crypto_account_modify_order", "crypto_account_cancel_order"}
+WORKFLOWS = {f"workflow-{name}.md" for name in ("quote", "screen", "news", "account", "crypto", "order-draft")}
+PARAMETER_REFERENCES = {
+    "quote-realtime.md", "quote-tick.md", "quote-watchlist.md", "quote-screening.md",
+    "quote-options.md", "quote-futures-warrants.md", "quote-news.md", "quote-financials.md",
+    "quote-research.md", "quote-shareholders.md", "quote-corporate-actions.md", "quote-capital.md",
+    "quote-short-broker.md", "trading-real.md", "trading-real-order.md", "trading-sim.md",
+}
 
 
 def documented_tools():
     names = set()
     for p in (ROOT / "skills").rglob("*.md"):
         text = p.read_text()
-        if p.name == "SKILL.md":
-            names.update(re.findall(r"`((?:quote|account|sim_trade|trading_order|crypto_account)_[a-z0-9_]+)`", text))
-        else:
-            for heading in re.findall(r"^#{1,4} (.+)$", text, re.M):
-                names.update(re.findall(r"\b(?:quote|account|sim_trade|trading_order|crypto_account)_[a-z0-9_]+\b", heading))
+        names.update(re.findall(r"`((?:quote|account|sim_trade|trading_order|crypto_account)_[a-z0-9_]+)`", text))
+        for heading in re.findall(r"^#{1,4} (.+)$", text, re.M):
+            names.update(re.findall(r"\b(?:quote|account|sim_trade|trading_order|crypto_account)_[a-z0-9_]+\b", heading))
     return names
 
 
@@ -56,7 +61,7 @@ def main():
     assert entry["source"]["source"] == "local"
     assert local_path(entry["source"]["path"]) == ROOT
     names = set()
-    for skill in sorted(skills_dir.glob("*/SKILL.md")):
+    for skill in sorted(skills_dir.rglob("SKILL.md")):
         text = skill.read_text()
         front = re.match(r"\A---\n(.*?)\n---\n", text, re.S)
         assert front, f"Missing frontmatter: {skill}"
@@ -67,7 +72,22 @@ def main():
         for ref in re.findall(r"reference/[a-z0-9-]+\.md", text):
             assert (skill.parent / ref).is_file(), f"Missing {ref} in {name}"
         assert not skill.parent.is_symlink()
-    assert names == {"futu-personal-quote", "futu-personal-screen", "futu-personal-news", "futu-personal-account", "futu-personal-crypto", "futu-personal-order-draft"}, names
+    assert names == {"futu-personal"}, names
+    assert list(skills_dir.rglob("SKILL.md")) == [skills_dir / "futu-personal/SKILL.md"]
+    references = skills_dir / "futu-personal/reference"
+    assert {p.name for p in references.glob("*.md")} == WORKFLOWS | PARAMETER_REFERENCES
+    for p in skills_dir.rglob("*.md"):
+        text = p.read_text()
+        targets = re.findall(r"\[[^\]]*\]\(([^)]+)\)", text)
+        targets += re.findall(r"`((?:reference/|\./|\.\./)[^`]+\.md)`", text)
+        for target in targets:
+            if re.match(r"[a-z]+://", target) or target.startswith("#"):
+                continue
+            resource = (p.parent / target.split("#", 1)[0]).resolve()
+            assert resource.is_relative_to(ROOT), f"Reference outside package: {p}: {target}"
+            assert resource.is_file(), f"Broken reference: {p}: {target}"
+        if p.name != "SKILL.md":
+            assert not re.match(r"\A---\nname:", text), f"Workflow exposed as skill: {p}"
     for p in (ROOT / "scripts").glob("*.py"):
         ast.parse(p.read_text(), filename=str(p))
     assert "Copyright (c) 2026 Futu" in (ROOT / "LICENSE").read_text()
@@ -75,7 +95,7 @@ def main():
     assert "order_execution" not in prefs
     assert prefs["operation_confirmation"] == "each_write_operation"
     assert prefs["max_pages"] > 0 and prefs["max_rows"] > 0
-    print(f"PASS: plugin, marketplace, {len(names)} skills, references, full tool discovery, {len(SCOPES)} requested OAuth scopes")
+    print(f"PASS: plugin, marketplace, {len(names)} skill, {len(WORKFLOWS)} workflows, {len(PARAMETER_REFERENCES)} parameter references, links, full tool discovery, {len(SCOPES)} requested OAuth scopes")
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 {
   "name": "futu-personal",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "个人富途全量 MCP 插件：行情、资讯、筛选、自选管理、账户、真实交易接口、模拟交易与数字资产接口。",
   "author": {
     "name": "Personal"

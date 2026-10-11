@@ -1,8 +1,10 @@
 # Futu Personal
 
-个人 Codex 富途插件，当前版本 `0.2.0`。连接富途官方 MCP，提供行情、筛选、资讯、自选管理、账户查询、真实交易接口、模拟交易和加密货币接口的完整接入。
+个人 Codex 富途插件，当前版本 `0.3.0`。连接富途官方 MCP，提供行情、筛选、资讯、自选管理、账户查询、真实交易接口、模拟交易和加密货币接口的完整接入。
 
-`.mcp.json` 不设置 `enabled_tools` 或 `disabled_tools`。Codex 按富途 MCP 当前返回的 `tools/list` 发现全部工具，不用固定白名单裁剪能力。Skills 提供常见意图路由与参数参考；未列入路由的新工具以当前服务端 schema 为准。工具已注册、OAuth 已授权和实际操作成功是三个不同的验证结果。
+`.mcp.json` 不设置 `enabled_tools` 或 `disabled_tools`。Codex 按富途 MCP 当前返回的 `tools/list` 发现全部工具，不用固定白名单裁剪能力。总路由 Skill 提供常见意图路由与参数参考；未列入路由的新工具以当前服务端 schema 为准。工具已注册、OAuth 已授权和实际操作成功是三个不同的验证结果。
+
+对外只有 `skills/futu-personal/SKILL.md` 一个总路由入口，负责需求识别、工具选择、动态发现和共用规则。行情、筛选、资讯、账户与证券交易、数字资产、可选订单草稿的六份业务说明放在 `reference/workflow-*.md`，按需求读取；十六份上游参数文档集中在同一目录。此次调整只改变组织方式，保留原业务细节、脚本、MCP 配置和现有授权，不需要重复授权。
 
 基于 [FutunnOpen/futu-agent-plugin](https://github.com/FutunnOpen/futu-agent-plugin)，上游基线为 `a1cfd82087453e0089a11fedc45f36ea85039930`（2026-09-10）。保留 MIT License。本项目不是富途官方插件，也不包含富途 MCP 服务端实现。
 
@@ -13,8 +15,12 @@
 ```bash
 codex plugin marketplace add /Users/bytedance/github/futu-personal
 codex plugin add futu-personal@futu-personal-local
-codex mcp login futu-personal --scopes 'quote:read,quote:write,trade:read,trade:write,accid:*'
+python3 -u scripts/login_mcp.py
 ```
+
+在仓库目录运行授权助手，将它输出的 URL 打开到浏览器，并保持助手进程运行。助手使用 Codex 原生 OAuth 接口，默认等待 20 分钟；需要更长时间时可传 `--timeout-secs`。收到 `SUCCESS` 才表示 Codex 已接收回调并保存授权。脚本不读取或输出 Token，也不调用交易工具。
+
+直接运行 `codex mcp login futu-personal --scopes 'quote:read,quote:write,trade:read,trade:write,accid:*'` 也可授权，但当前 CLI 默认只等待 5 分钟。若最后跳到 `127.0.0.1` 后连接失败，先检查助手是否仍运行；超时或退出后，旧 URL 不能继续使用，需要重新运行助手并使用新 URL。
 
 插件配置申请服务端元数据声明的全部五项 scopes。已有 `0.1.0` 的只读 OAuth 授权不会自动获得写权限或账户绑定，需要重新发起登录并由用户在富途页面选择和授予权限。最终可授予的范围取决于富途对当前客户端及账户的设置；不能把请求的 scope 当作已授予的 scope。
 
@@ -75,7 +81,7 @@ Codex 使用安装后的缓存副本。安装器如果未刷新，先 `codex plu
 
 ## 可选订单草稿
 
-`futu-personal-order-draft` 和 `scripts/order_draft.py` 保留为本地附加功能，用于生成用户明确指定参数的股票限价单草稿。脚本使用 Python Decimal 处理金额，没有网络或订单提交能力。
+总路由按需读取 `skills/futu-personal/reference/workflow-order-draft.md`，再调用 `scripts/order_draft.py` 生成用户明确指定参数的股票限价单草稿。脚本使用 Python Decimal 处理金额，没有网络或订单提交能力。
 
 草稿功能只覆盖它声明支持的参数，不表示富途全量订单类型或市场范围，也不替代插件接入的真实交易和模拟交易接口。
 
@@ -83,19 +89,33 @@ Codex 使用安装后的缓存副本。安装器如果未刷新，先 `codex plu
 
 验收分别记录本地插件加载、MCP 工具发现、OAuth 实际授予范围和具体接口调用。任何一项成功都不能代替其余项目。
 
-### 0.2.0 当前验收
+### 0.3.0 当前验收（2026-10-12）
+
+- 安装缓存为 0.3.0。Codex 原生 `skills/list` 实际只加载 `futu-personal:futu-personal` 一个总路由 Skill；`mcpServerStatus/list` 仍发现全部 101 个工具，核心写操作接口均已注册。
+- 六份原 Skill 正文迁为按需读取的 workflow，所有工具名及出现次数保留。十六份原参数参考逐字节不变，本地链接检查通过。
+- 五项 scopes 和 MCP 配置保持不变，继续复用已保存的授权；未再次发起授权或发送交易订单。
+- 单一 Skill 校验、参数参考和链接校验、6 项现有及 OAuth 通知顺序回归测试通过。
+
+### OAuth 与账户验收（2026-10-12）
+
+- CLI 登录曾在 5 分钟后超时，本地回调监听关闭；旧授权 URL 无法继续使用。新增授权助手通过 Codex 原生接口将等待延长至 20 分钟。
+- 新流程已收到 `mcpServer/oauthLogin/completed` 的成功通知，Codex 已保存授权。Chrome 在最终页面显示屏蔽提示，不代表此次后台授权失败。
+- 使用 Codex 原生 MCP 客户端调用 `account_authorized_trd_accs`，返回 `s=ok`；调用 `sim_trade_account_list`，返回 `ret_code=0`、`ret_msg=success`。账户列表已识别，详细脱敏结果只保存在本地验收输出，不写入仓库。
+- 账户列表成功证明该读接口及绑定可用；不据此推断全部 scope 的实际授予范围或真实交易执行成功。本轮未发送真实或模拟订单。
+
+### 0.2.0 工具发现验收
 
 - 源码配置已声明服务端元数据中的五项 scopes，并移除工具白名单和黑名单。
 - 安装缓存已刷新为 0.2.0，Codex 原生客户端实际发现 101 个工具；实盘四工具、自选修改、模拟历史订单、加密货币接口和新增期权组合接口均已注册。
 - `scripts/inspect_mcp.py` 可重复核对当前工具集合，不读取凭据、不调用写工具、不保存新聊天。报告的 `configured_requested_scopes` 来自标明的源码配置路径，不代表实际授予的权限。
-- 原有 OAuth 已保存，全部权限及账户绑定等待重新授权后在富途页面核对。
+- 工具发现阶段使用此前已保存的 OAuth；其后重新授权及账户查询结果见上节。
 - 此前不含 `accid:*` 的四项授权请求中，交易查询、交易执行置灰并提示“请先完成开户”。已取消该次登录，重新请求全部五项；新页面出现账户选择框，交易查询、交易执行均可勾选，最终授权由用户在页面完成。
 - 本轮只验证完整注册及读接口，不发送真实订单、自选写请求或模拟订单。
 - OAuth 全部实际授予范围及真实交易调用尚未写成已通过；未执行的操作保留为未验证。
 
 ### 0.1.0 历史验收（2026-10-12）
 
-以下记录属于旧版只读配置，不代表 `0.2.0` 的当前工具集合或写权限：
+以下记录属于旧版只读配置，不代表 `0.3.0` 的当前工具集合或写权限：
 
 - 本地安装、OAuth 保存和富途 MCP 工具发现通过。
 - Codex 加载 82 个工具，与当时的静态允许列表一致；实盘执行及自选修改工具未加载。

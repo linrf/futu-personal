@@ -29,13 +29,18 @@ class NativeClient:
             stderr=subprocess.DEVNULL, text=True,
         )
         self.messages = queue.Queue()
+        self.notifications = queue.Queue()
         self.sequence = 0
         threading.Thread(target=self._receive, daemon=True).start()
 
     def _receive(self):
         for line in self.process.stdout:
             try:
-                self.messages.put(json.loads(line))
+                message = json.loads(line)
+                if 'method' in message and 'id' not in message:
+                    self.notifications.put(message)
+                else:
+                    self.messages.put(message)
             except json.JSONDecodeError:
                 pass
 
@@ -79,7 +84,7 @@ def main():
     client = NativeClient()
     try:
         client.rpc('initialize', {
-            'clientInfo': {'name': 'futu_personal_inspection', 'version': '0.2.0'},
+            'clientInfo': {'name': 'futu_personal_inspection', 'version': json.loads((ROOT / '.codex-plugin/plugin.json').read_text())['version']},
             'capabilities': {'experimentalApi': True},
         })
         client.send({'jsonrpc': '2.0', 'method': 'initialized'})
@@ -101,6 +106,11 @@ def main():
             raise RuntimeError('Tool discovery failed: ' + server['toolsError'])
         tools = server['tools']
         missing = sorted(CORE_OPERATIONS - set(tools))
+        skill_page = client.rpc('skills/list', {'cwds': [str(ROOT)], 'forceReload': True})
+        plugin_skills = [skill for entry in skill_page['data'] for skill in entry['skills']
+                         if '/futu-personal/' in str(skill['path'])]
+        skill_names = [skill['name'] for skill in plugin_skills]
+        single_router = len(plugin_skills) == 1 and skill_names[0].split(':')[-1] == 'futu-personal' and plugin_skills[0]['enabled']
         report = {
             'verified_at': datetime.now(ZoneInfo('Asia/Taipei')).isoformat(timespec='seconds'),
             'source_plugin_version': json.loads((ROOT / '.codex-plugin/plugin.json').read_text())['version'],
@@ -108,6 +118,9 @@ def main():
             'loaded_tool_count': len(tools),
             'required_operation_tools_present': not missing,
             'missing_operation_tools': missing,
+            'loaded_skill_names': skill_names,
+            'loaded_skill_paths': [str(skill['path']) for skill in plugin_skills],
+            'single_router_skill_loaded': single_router,
             'configured_requested_scopes': json.loads((ROOT / '.mcp.json').read_text())['mcpServers']['futu-personal']['scopes'],
             'configuration_source': str(ROOT / '.mcp.json'),
             'granted_scopes': 'Requires verification on Futu authorization page; not inferred from saved OAuth',
@@ -120,7 +133,7 @@ def main():
             args.output.parent.mkdir(parents=True, exist_ok=True)
             args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
         print(json.dumps({k: v for k, v in report.items() if k not in {'tools', 'tool_names'}}, ensure_ascii=False, indent=2))
-        if missing:
+        if missing or not single_router:
             raise SystemExit(1)
     finally:
         client.close()

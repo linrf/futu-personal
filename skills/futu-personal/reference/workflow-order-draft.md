@@ -1,17 +1,13 @@
----
-name: futu-personal-order-draft
-description: 将用户明确给出的富途股票买卖参数整理为供用户在富途客户端手动提交的限价订单草稿；不执行真实交易。
----
 
 # 手动提交的订单草稿
 
-这是用户选择离线整理参数时的附加能力，不替代 `futu-personal-account` 中的完整交易接口。
+这是用户选择离线整理参数时的附加能力，不替代 [账户与交易工作流](./workflow-account.md) 中的完整交易接口。
 
 只整理用户明确给出的订单参数，不自行决定标的、买卖方向、数量或价格。
 缺少账户、标的、方向、数量、价格或币种时，先补齐；不得用当前报价自动替用户选择限价。
 核对股票代码对应的名称、市场、单位及交易时段，查询数据注明时间。
 
-首版支持股票限价买入/卖出草稿。用插件根目录 `scripts/order_draft.py` 做十进制计算：
+首版支持股票限价买入/卖出草稿。用插件根目录的 [order_draft.py](../../../scripts/order_draft.py) 做十进制计算（本文件所在的 `reference/` 目录向上三级为插件根目录）：
 
 ```bash
 python3 "<PLUGIN_ROOT>/scripts/order_draft.py" --account-id DEMO --symbol HK.00700 --side BUY --quantity 100 --limit-price 300.125 --currency HKD
