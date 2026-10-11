@@ -1,2 +1,10 @@
 .idea/
 .codex/
+.venv/
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
+preferences.local.json
+drafts/

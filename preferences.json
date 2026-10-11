@@ -1,0 +1,18 @@
+{
+  "language": "zh-CN",
+  "timezone": "Asia/Taipei",
+  "preferred_markets": [],
+  "query_account_id": null,
+  "max_pages": 3,
+  "max_rows": 100,
+  "quote_fields": [
+    "symbol",
+    "name",
+    "price",
+    "currency",
+    "data_time",
+    "market_state"
+  ],
+  "order_execution": "manual",
+  "upstream_commit": "a1cfd82087453e0089a11fedc45f36ea85039930"
+}

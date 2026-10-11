@@ -1,15 +1,14 @@
 {
-  "name": "futu-agent-plugins",
+  "name": "futu-personal-local",
   "interface": {
-    "displayName": "Futu Agent Plugins"
+    "displayName": "Futu Personal 本地试用"
   },
   "plugins": [
     {
-      "name": "futu-mcp",
+      "name": "futu-personal",
       "source": {
-        "source": "url",
-        "url": "https://github.com/FutunnOpen/futu-agent-plugin.git",
-        "ref": "main"
+        "source": "local",
+        "path": "./"
       },
       "policy": {
         "installation": "AVAILABLE",

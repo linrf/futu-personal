@@ -1,1 +1,0 @@
-../../../skills/futu-mcp-account/reference/trading-sim.md

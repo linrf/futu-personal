@@ -1,35 +1,26 @@
 {
-  "name": "futu-mcp",
-  "version": "1.0.0",
-  "description": "Futu MCP plugin — 行情报价、选股筛选、新闻资讯、账户查询与模拟交易（不支持真实交易）",
+  "name": "futu-personal",
+  "version": "0.1.0",
+  "description": "个人富途行情研究、账户查询、模拟交易与手动执行订单草稿。",
   "author": {
-    "name": "Futu",
-    "url": "https://www.futunn.com"
+    "name": "Personal"
   },
-  "homepage": "https://open.futunn.com",
-  "repository": "https://github.com/FutunnOpen/futu-agent-plugin",
   "license": "MIT",
-  "keywords": ["futu", "stock", "trading", "quote", "finance", "mcp", "hongkong", "us-stock"],
-  "skills": "./skills-codex/",
+  "skills": "./skills/",
   "mcpServers": "./.mcp.json",
   "interface": {
-    "displayName": "Futu MCP",
-    "shortDescription": "港/美/A 股行情、选股、新闻、模拟交易金融插件（不支持真实交易）",
-    "longDescription": "通过 Futu MCP Server 连接富途证券数据服务，提供实时行情报价、K线、买卖盘、分时逐笔、多因子选股、窝轮期权筛选、IPO 列表、新闻公告研报、财务报表、估值分析、分析师评级、股东持仓、资金流向、经济日历，以及账户查询与模拟交易能力。注意：Codex 环境不支持真实交易下单/改单/撤单操作，仅支持模拟交易。",
-    "developerName": "Futu",
+    "displayName": "Futu Personal",
+    "shortDescription": "个人行情、账户查询、模拟交易与订单草稿",
+    "developerName": "Personal",
     "category": "Finance",
-    "capabilities": ["Read", "Write"],
-    "defaultPrompt": [
-      "帮我查一下腾讯最新的股价和K线走势",
-      "筛选一下港股中PE低于15、ROE大于15%的股票",
-      "查看我的持仓和今日盈亏",
-      "用模拟账户买入100股腾讯"
+    "capabilities": [
+      "Read",
+      "Write"
     ],
-    "websiteURL": "https://open.futunn.com",
-    "privacyPolicyURL": "https://www.futufin.com/about/privacy-policy",
-    "termsOfServiceURL": "https://www.futufin.com/about/condition",
-    "brandColor": "#FF6600",
-    "composerIcon": "./assets/futu.png",
-    "logo": "./assets/futu.png"
+    "defaultPrompt": [
+      "查看腾讯最新报价，注明数据时间和币种",
+      "查询我选定账户的持仓和盈亏",
+      "生成一份由我手动提交的订单草稿"
+    ]
   }
 }
