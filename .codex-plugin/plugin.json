@@ -1,7 +1,7 @@
 {
   "name": "futu-personal",
-  "version": "0.1.0",
-  "description": "个人富途行情研究、账户查询、模拟交易与手动执行订单草稿。",
+  "version": "0.2.0",
+  "description": "个人富途全量 MCP 插件：行情、资讯、筛选、自选管理、账户、真实交易接口、模拟交易与数字资产接口。",
   "author": {
     "name": "Personal"
   },
@@ -10,7 +10,7 @@
   "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "Futu Personal",
-    "shortDescription": "个人行情、账户查询、模拟交易与订单草稿",
+    "shortDescription": "富途全部 MCP 工具与四类 OAuth 权限",
     "developerName": "Personal",
     "category": "Finance",
     "capabilities": [
@@ -19,8 +19,8 @@
     ],
     "defaultPrompt": [
       "查看腾讯最新报价，注明数据时间和币种",
-      "查询我选定账户的持仓和盈亏",
-      "生成一份由我手动提交的订单草稿"
+      "列出我的授权账户和订单",
+      "检查富途全量工具与 OAuth 权限状态"
     ]
   }
 }

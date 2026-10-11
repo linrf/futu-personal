@@ -13,6 +13,6 @@
     "data_time",
     "market_state"
   ],
-  "order_execution": "manual",
-  "upstream_commit": "a1cfd82087453e0089a11fedc45f36ea85039930"
+  "upstream_commit": "a1cfd82087453e0089a11fedc45f36ea85039930",
+  "operation_confirmation": "each_write_operation"
 }

@@ -1,6 +1,6 @@
 ---
 name: futu-personal-screen
-description: 富途选股筛选器 — 股票多因子筛选/窝轮牛熊证筛选/期权筛选/IPO列表
+description: 富途条件筛选与期权组合数据，包括股票、窝轮、期权筛选、组合列表、价差与 IPO 列表。
 ---
 
 # Futu MCP 选股筛选
@@ -19,6 +19,8 @@ description: 富途选股筛选器 — 股票多因子筛选/窝轮牛熊证筛�
 | 窝轮/牛熊证筛选 | `quote_warrant_screen` | 按正股、类型、到期日、杠杆、溢价等 |
 | 查某正股全部窝轮 | `quote_warrant_screen` | 传 `stock_owner` + 最少过滤条件 |
 | 期权筛选 | `quote_option_screen` | 跨市场多维度策略筛选 |
+| 查询指定期权组合 | `quote_option_strategy` | 标的、组合类型和到期日由用户指定；按当前 schema 核对市场支持范围 |
+| 期权组合可用价差 | `quote_option_strategy_spread` | 日历/对角组合还需要远期到期日；返回价差可用于组合查询 |
 | 港股新股 | `quote_ipo_list_hk` | 认购中/待上市/即将上市 |
 | 美股新股 | `quote_ipo_list_us` | |
 | A 股新股 | `quote_ipo_list_cn` | 新通知/认购中/中签/待上市 |
@@ -56,6 +58,7 @@ description: 富途选股筛选器 — 股票多因子筛选/窝轮牛熊证筛�
 4. 优先用 `limit` 收窄结果集，避免大量数据占用上下文
 5. 分页默认最多 3 页、100 条；不足以回答时先说明截断，再按用户需要继续。不得无上限遍历
 6. 当用户需求无法直接匹配上表时，先列出当前插件已加载的可用工具，可能已有新工具上线
+7. 组合列表不包含自行推断的买卖方向。查询组合报价时，需要每条腿明确给出 BUY/SELL 和数量，再使用 `quote_combo_option_quote`；不要自行拼造合约代码。
 
 ## 参数参考文档
 

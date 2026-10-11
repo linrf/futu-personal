@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the local package and its declared tool boundary, offline."""
+"""Validate full MCP discovery, OAuth scopes, and local skill resources, offline."""
 
 import ast
 import json
@@ -7,8 +7,10 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-BLOCKED = {"trading_order_place", "trading_order_replace", "trading_order_cancel", "trading_order_confirm"}
+REAL_OPERATIONS = {"trading_order_place", "trading_order_replace", "trading_order_cancel", "trading_order_confirm"}
 SIM_WRITES = {"sim_trade_input_order", "sim_trade_modify_order", "sim_trade_cancel_order"}
+SCOPES = {"quote:read", "quote:write", "trade:read", "trade:write"}
+CRYPTO_OPERATIONS = {"crypto_account_create_order", "crypto_account_modify_order", "crypto_account_cancel_order"}
 
 
 def documented_tools():
@@ -16,10 +18,10 @@ def documented_tools():
     for p in (ROOT / "skills").rglob("*.md"):
         text = p.read_text()
         if p.name == "SKILL.md":
-            names.update(re.findall(r"`((?:quote|account|sim_trade)_[a-z0-9_]+)`", text))
+            names.update(re.findall(r"`((?:quote|account|sim_trade|trading_order|crypto_account)_[a-z0-9_]+)`", text))
         else:
             for heading in re.findall(r"^#{1,4} (.+)$", text, re.M):
-                names.update(re.findall(r"\b(?:quote|account|sim_trade)_[a-z0-9_]+\b", heading))
+                names.update(re.findall(r"\b(?:quote|account|sim_trade|trading_order|crypto_account)_[a-z0-9_]+\b", heading))
     return names
 
 
@@ -41,15 +43,12 @@ def main():
     mcp = json.loads(local_path(manifest["mcpServers"]).read_text())
     server = mcp["mcpServers"]["futu-personal"]
     assert server["url"] == "https://mcp.futunn.com/mcp"
-    allowed = set(server["enabled_tools"])
-    assert allowed and len(allowed) == len(server["enabled_tools"])
-    assert not allowed & BLOCKED
-    assert BLOCKED <= set(server["disabled_tools"])
-    assert SIM_WRITES <= allowed
-    assert "quote_modify_user_security" not in allowed
+    assert "enabled_tools" not in server, "Full discovery must not use an allowlist"
+    assert "disabled_tools" not in server, "Full discovery must not use a denylist"
+    assert not server.get("tools"), "Full discovery must not disable individual tools"
+    assert set(server["scopes"]) == SCOPES and len(server["scopes"]) == 4
     assert server["default_tools_approval_mode"] == "prompt"
-    assert all(re.fullmatch(r"(?:quote|account|sim_trade)_[a-z0-9_]+", name) for name in allowed)
-    assert allowed <= documented_tools(), f"Undocumented tool names: {allowed - documented_tools()}"
+    assert REAL_OPERATIONS | SIM_WRITES | CRYPTO_OPERATIONS | {"quote_modify_user_security", "sim_trade_history_order_list", "quote_combo_option_quote", "quote_option_strategy", "quote_option_strategy_spread"} <= documented_tools()
     marketplace = json.loads((ROOT / ".agents/plugins/marketplace.json").read_text())
     assert marketplace["name"] == "futu-personal-local"
     entry, = marketplace["plugins"]
@@ -68,14 +67,15 @@ def main():
         for ref in re.findall(r"reference/[a-z0-9-]+\.md", text):
             assert (skill.parent / ref).is_file(), f"Missing {ref} in {name}"
         assert not skill.parent.is_symlink()
-    assert len(names) == 5, names
+    assert names == {"futu-personal-quote", "futu-personal-screen", "futu-personal-news", "futu-personal-account", "futu-personal-crypto", "futu-personal-order-draft"}, names
     for p in (ROOT / "scripts").glob("*.py"):
         ast.parse(p.read_text(), filename=str(p))
     assert "Copyright (c) 2026 Futu" in (ROOT / "LICENSE").read_text()
     prefs = json.loads((ROOT / "preferences.json").read_text())
-    assert prefs["order_execution"] == "manual"
+    assert "order_execution" not in prefs
+    assert prefs["operation_confirmation"] == "each_write_operation"
     assert prefs["max_pages"] > 0 and prefs["max_rows"] > 0
-    print(f"PASS: plugin, marketplace, {len(names)} skills, references, {len(allowed)} allowed tool names; live execution excluded")
+    print(f"PASS: plugin, marketplace, {len(names)} skills, references, full tool discovery, 4 requested OAuth scopes")
 
 
 if __name__ == "__main__":

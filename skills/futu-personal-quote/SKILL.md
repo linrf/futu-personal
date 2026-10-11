@@ -20,6 +20,7 @@ description: 富途行情数据 — 实时报价/K线/盘口/分时/逐笔/快�
 | 用户想要 | 工具 | 说明 |
 |---------|------|------|
 | 查股价/报价 | `quote_stock_quote`、`quote_market_snapshot` | 批量最多 400 只；snapshot 字段更全 |
+| 多腿期权组合报价 | `quote_combo_option_quote` | 使用用户明确提供的合约、BUY/SELL 和数量，不从组合类型猜方向 |
 | K 线/图表 | `quote_cur_kline`（最新 N 根）、`quote_history_kline`（历史区间） | ktype: 1=1分钟 2=日 3=周 4=月 9=60分钟 |
 | 盘口/买卖档 | `quote_order_book` | 深度取决于用户行情权限 |
 | 逐笔成交 | `quote_rt_ticker` | 最新 N 笔，支持按盘前/盘后过滤 |
@@ -27,6 +28,7 @@ description: 富途行情数据 — 实时报价/K线/盘口/分时/逐笔/快�
 | 市场状态 | `quote_market_state` | 开盘/休市/盘前/盘后 |
 | 交易日历 | `quote_trading_days` | 查指定区间的交易日 |
 | 查看自选 | `quote_user_security`、`quote_user_security_group` | |
+| 增删自选 | `quote_modify_user_security` | 先核对分组、标的和增删方向；需要 `quote:write` |
 | 板块列表 | `quote_plate_list` | 行业/概念/地区 |
 | 板块成分股 | `quote_plate_stock` | 支持 120+ 排序字段 |
 | 股票所属板块 | `quote_owner_plate` | |
@@ -43,6 +45,8 @@ description: 富途行情数据 — 实时报价/K线/盘口/分时/逐笔/快�
 7. 优先用 `limit`/`num` 控制返回条数，避免一次性拉取过多数据
 8. 分页默认最多 3 页、100 条；不足以回答时先说明截断，再按用户需要继续。不得无上限遍历
 9. 当用户需求无法直接匹配上表时，先列出当前插件已加载的可用工具，可能已有新工具上线
+10. 自选修改按用户明确指定的分组和标的处理；返回后重新读取对应自选列表核对变化。结果不明确时先查询，不重复提交修改。
+11. `MOVE_OUT` 仅移出指定自定义分组；`DEL` 会从所有分组删除。摘要必须明确影响，不把“移出这个分组”映射为 `DEL`。
 
 ## 参数参考文档
 
