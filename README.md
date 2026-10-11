@@ -53,10 +53,20 @@ python3 -m unittest discover -s tests
 检查覆盖 manifest/marketplace 路径、Skills、参考链接、工具允许列表，以及订单草稿的精度和输入限制。
 OAuth、富途工具实际返回的名称/权限和只读查询需要另外验收；这个仓库没有富途 MCP 服务端实现。
 
+### 首次连接验收（2026-10-12）
+
+- 本地安装、OAuth 保存、富途 MCP 工具发现已验证。
+- Codex 实际加载 82 个工具，与本版本允许列表一致；禁用列表中的实盘执行及自选股修改工具没有加载。
+- 使用 Codex 原生 MCP 客户端调用 `quote_market_snapshot`，参数为 `{"code_list":["HK.00700"]}`，返回 `ret_code=0`、`ret_msg=success`。
+- 腾讯快照中的 `last_price=424.8`、`data_date=2026-10-09`、`update_time=1791533277000`。这是接口返回的数据时间，不能当作 2026-10-12 的盘中价格。
+- 账户查询与模拟操作尚未验收；实盘执行不在本版本范围内。只读调用使用临时运行上下文，没有启动模型回合或保存新聊天。
+
 ## OAuth 客户端差异
 
 本地插件复用富途 MCP，OAuth 由 Codex 客户端发起。修改本地插件的名称和 Skills 不会把它变成 WorkBuddy 的 OAuth 客户端。
 WorkBuddy 授权应用页面中的“交易执行”说明该客户端已获得对应权限，不能作为 Codex 也已获得同一权限的证据。最终以各自授权页和实际工具返回为准。
+
+富途 MCP 服务端提供交易执行能力。[官方认证文档](https://open.futunn.com/zh-cn/mcp-docs/authentication)将 `trade:write` 定义为执行下单、撤单操作；`trade:read` 用于账户、持仓和订单查询。当前个人版只申请查询权限，并在工具允许列表中排除了实盘执行工具。这是本版本的产品范围，不能据此推断 MCP 协议或 Codex 客户端在技术上无法获得交易权限。
 
 ## 移除
 
