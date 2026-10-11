@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "futu-personal": {
+      "url": "https://mcp.futunn.com/mcp",
+      "default_tools_approval_mode": "prompt",
+      "startup_timeout_sec": 20,
+      "tool_timeout_sec": 60,
+      "scopes": [
+        "quote:read",
+        "quote:write",
+        "trade:read",
+        "trade:write",
+        "accid:*"
+      ]
+    }
+  }
+}
